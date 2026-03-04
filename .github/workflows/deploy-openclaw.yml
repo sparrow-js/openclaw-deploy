@@ -1,0 +1,410 @@
+name: Deploy OpenClaw to Fly.io
+
+on:
+  workflow_dispatch:
+    inputs:
+      fly_api_token:
+        description: "Fly.io API Token for deployment"
+        required: true
+      fly_app_name:
+        description: "Name of the Fly.io app to deploy to"
+        required: true
+        default: "shop-openclaw"
+      docker_image:
+        description: "Docker image to deploy"
+        required: true
+        default: "registry.fly.io/needware-openclaw:deployment-01KGXVPS73R5KDP6KNWYMTJFSQ"
+      primary_region:
+        description: "Primary region for deployment"
+        required: true
+        default: "sin"
+      volume_name:
+        description: "Name of the Fly.io volume for persistent data"
+        required: true
+        default: "openclaw_shop_data"
+      openrouter_api_key:
+        description: "OpenRouter API Key"
+        required: true
+      openclaw_config_base64:
+        description: "Base64 encoded openclaw.json config (optional)"
+        required: false
+        default: ""
+      client_id:
+        description: "Client ID for state tracking"
+        required: true
+        default: "openclaw-client"
+
+jobs:
+  deploy-openclaw:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mask sensitive inputs
+        run: |
+          echo "::add-mask::${{ github.event.inputs.fly_api_token }}"
+          echo "::add-mask::${{ github.event.inputs.openrouter_api_key }}"
+          if [ -n "${{ github.event.inputs.openclaw_config_base64 }}" ]; then
+            echo "::add-mask::${{ github.event.inputs.openclaw_config_base64 }}"
+          fi
+
+      - name: Send start deployment state callback
+        run: |
+          RESPONSE=$(curl -X POST \
+            -H "Content-Type: application/json" \
+            "https://www.needware.dev/api/openclaw-callback" \
+            -d '{
+              "event": "start_openclaw_deployment",
+              "status": "started",
+              "clientId": "${{ github.event.inputs.client_id }}",
+              "app_name": "${{ github.event.inputs.fly_app_name }}",
+              "docker_image": "${{ github.event.inputs.docker_image }}",
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+            }' \
+            -w "%{http_code}" -s -o response.json)
+          echo "Callback HTTP Status: $RESPONSE"
+          if [ "$RESPONSE" -ne 200 ] && [ "$RESPONSE" -ne 201 ]; then
+            echo "Failed to send start deployment callback. Response:"
+            cat response.json
+            echo "Continuing workflow..."
+          fi
+
+      - name: Checkout workflow repository
+        uses: actions/checkout@v4
+
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: "0.3.94"
+
+      - name: Create fly.toml for OpenClaw deployment
+        run: |
+          cat << 'FLYEOF' > fly.toml
+          app = '${{ github.event.inputs.fly_app_name }}'
+          primary_region = '${{ github.event.inputs.primary_region }}'
+
+          [build]
+            image = '${{ github.event.inputs.docker_image }}'
+
+          [env]
+            NODE_ENV = 'production'
+            OPENCLAW_PREFER_PNPM = '1'
+            OPENCLAW_STATE_DIR = '/data'
+            NODE_OPTIONS = '--max-old-space-size=1536'
+            # Point config at a file baked into the image (writable /data mount may be empty on first boot)
+            OPENCLAW_CONFIG_PATH = "/data/openclaw.json"
+
+          [processes]
+            app = 'node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan'
+
+          [http_service]
+            internal_port = 3000
+            force_https = true
+            auto_stop_machines = false
+            auto_start_machines = true
+            min_machines_running = 1
+            processes = ['app']
+
+          [[vm]]
+            size = 'shared-cpu-2x'
+            memory = '2048mb'
+
+          [mounts]
+            source = '${{ github.event.inputs.volume_name }}'
+            destination = '/data'
+          FLYEOF
+          echo "Created fly.toml for OpenClaw deployment:"
+          cat fly.toml
+
+      - name: Check if Fly.io app exists
+        env:
+          FLY_API_TOKEN: ${{ github.event.inputs.fly_api_token }}
+        run: |
+          echo "Checking if Fly.io app exists: ${{ github.event.inputs.fly_app_name }}"
+          flyctl apps list | grep "${{ github.event.inputs.fly_app_name }}" || {
+            echo "App does not exist, creating it..."
+            # Create app via Machines API with org_slug: personal
+            CREATE_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+              "https://api.machines.dev/v1/apps" \
+              -H "Authorization: Bearer $FLY_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"app_name": "${{ github.event.inputs.fly_app_name }}", "org_slug": "personal"}')
+            HTTP_CODE=$(echo "$CREATE_RESPONSE" | tail -1)
+            BODY=$(echo "$CREATE_RESPONSE" | sed '$d')
+            echo "Create app response (HTTP $HTTP_CODE): $BODY"
+            if [ "$HTTP_CODE" -ne 200 ] && [ "$HTTP_CODE" -ne 201 ]; then
+              echo "Failed to create app. Sending failure callback..."
+              curl -X POST \
+                -H "Content-Type: application/json" \
+                "https://www.needware.dev/api/openclaw-callback" \
+                -d '{
+                  "event": "create_fly_app",
+                  "status": "failed_to_create",
+                  "clientId": "${{ github.event.inputs.client_id }}",
+                  "app_name": "${{ github.event.inputs.fly_app_name }}",
+                  "error": "Failed to create Fly.io app",
+                  "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+                }' \
+                -w "%{http_code}" -s
+              exit 1
+            fi
+            echo "App created successfully"
+          }
+      - name: Send create Fly.io app state callback
+        run: |
+          RESPONSE=$(curl -X POST \
+            -H "Content-Type: application/json" \
+            "https://www.needware.dev/api/openclaw-callback" \
+            -d '{
+              "event": "create_fly_app",
+              "status": "created",
+              "clientId": "${{ github.event.inputs.client_id }}",
+              "app_name": "${{ github.event.inputs.fly_app_name }}",
+              "app_url": "https://${{ github.event.inputs.fly_app_name }}.fly.dev",
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+            }' \
+            -w "%{http_code}" -s -o response.json)
+          echo "Callback HTTP Status: $RESPONSE"
+          if [ "$RESPONSE" -ne 200 ] && [ "$RESPONSE" -ne 201 ]; then
+            echo "Failed to send create Fly.io app callback. Response:"
+            cat response.json
+            echo "Continuing workflow..."
+          fi
+
+      - name: Create Fly.io volume for persistent data
+        env:
+          FLY_API_TOKEN: ${{ github.event.inputs.fly_api_token }}
+        run: |
+          echo "Checking if volume ${{ github.event.inputs.volume_name }} exists for app ${{ github.event.inputs.fly_app_name }}..."
+          EXISTING_VOLUMES=$(flyctl volumes list --app ${{ github.event.inputs.fly_app_name }} --json 2>/dev/null || echo "[]")
+          if echo "$EXISTING_VOLUMES" | grep -q "${{ github.event.inputs.volume_name }}"; then
+            echo "Volume ${{ github.event.inputs.volume_name }} already exists, skipping creation"
+          else
+            echo "Creating volume ${{ github.event.inputs.volume_name }} in region ${{ github.event.inputs.primary_region }}..."
+            flyctl volumes create ${{ github.event.inputs.volume_name }} \
+              --app ${{ github.event.inputs.fly_app_name }} \
+              --region ${{ github.event.inputs.primary_region }} \
+              --size 3 \
+              --yes || {
+              echo "Failed to create volume. Sending failure callback..."
+              curl -X POST \
+                -H "Content-Type: application/json" \
+                "https://www.needware.dev/api/openclaw-callback" \
+                -d '{
+                  "event": "create_fly_volume",
+                  "status": "failed_to_create",
+                  "clientId": "${{ github.event.inputs.client_id }}",
+                  "app_name": "${{ github.event.inputs.fly_app_name }}",
+                  "volume_name": "${{ github.event.inputs.volume_name }}",
+                  "error": "Failed to create Fly.io volume",
+                  "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+                }' \
+                -w "%{http_code}" -s
+              exit 1
+            }
+            echo "Volume created successfully"
+          fi
+      - name: Send create volume state callback
+        run: |
+          RESPONSE=$(curl -X POST \
+            -H "Content-Type: application/json" \
+            "https://www.needware.dev/api/openclaw-callback" \
+            -d '{
+              "event": "create_fly_volume",
+              "status": "created",
+              "clientId": "${{ github.event.inputs.client_id }}",
+              "app_name": "${{ github.event.inputs.fly_app_name }}",
+              "volume_name": "${{ github.event.inputs.volume_name }}",
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+            }' \
+            -w "%{http_code}" -s -o response.json)
+          echo "Callback HTTP Status: $RESPONSE"
+          if [ "$RESPONSE" -ne 200 ] && [ "$RESPONSE" -ne 201 ]; then
+            echo "Failed to send create volume callback. Response:"
+            cat response.json
+            echo "Continuing workflow..."
+          fi
+
+      - name: Set OPENCLAW_GATEWAY_TOKEN secret
+        id: set-gateway-token
+        env:
+          FLY_API_TOKEN: ${{ github.event.inputs.fly_api_token }}
+        run: |
+          echo "Setting OPENCLAW_GATEWAY_TOKEN secret..."
+          GATEWAY_TOKEN=$(openssl rand -hex 32)
+          echo "::add-mask::$GATEWAY_TOKEN"
+          flyctl secrets set OPENCLAW_GATEWAY_TOKEN="$GATEWAY_TOKEN" \
+            --app ${{ github.event.inputs.fly_app_name }} --stage || {
+            echo "Failed to set OPENCLAW_GATEWAY_TOKEN secret"
+            exit 1
+          }
+          echo "OPENCLAW_GATEWAY_TOKEN secret set successfully"
+          echo "GATEWAY_TOKEN=$GATEWAY_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Send set gateway token state callback
+        run: |
+          RESPONSE=$(curl -X POST \
+            -H "Content-Type: application/json" \
+            "https://www.needware.dev/api/openclaw-callback" \
+            -d '{
+              "event": "set_gateway_token",
+              "status": "token_set",
+              "clientId": "${{ github.event.inputs.client_id }}",
+              "app_name": "${{ github.event.inputs.fly_app_name }}",
+              "gateway_token": "${{ steps.set-gateway-token.outputs.GATEWAY_TOKEN }}",
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+            }' \
+            -w "%{http_code}" -s -o response.json)
+          echo "Callback HTTP Status: $RESPONSE"
+          if [ "$RESPONSE" -ne 200 ] && [ "$RESPONSE" -ne 201 ]; then
+            echo "Failed to send gateway token callback. Response:"
+            cat response.json
+            echo "Continuing workflow..."
+          fi
+
+      - name: Set OPENROUTER_API_KEY secret
+        env:
+          FLY_API_TOKEN: ${{ github.event.inputs.fly_api_token }}
+          OPENROUTER_API_KEY: ${{ github.event.inputs.openrouter_api_key }}
+        run: |
+          echo "Setting OPENROUTER_API_KEY secret..."
+          flyctl secrets set OPENROUTER_API_KEY="$OPENROUTER_API_KEY" \
+            --app ${{ github.event.inputs.fly_app_name }} --stage || {
+            echo "Failed to set OPENROUTER_API_KEY secret"
+            exit 1
+          }
+          echo "OPENROUTER_API_KEY secret set successfully"
+
+      - name: Deploy OpenClaw to Fly.io
+        env:
+          FLY_API_TOKEN: ${{ github.event.inputs.fly_api_token }}
+        run: |
+          echo "Deploying OpenClaw to Fly.io app: ${{ github.event.inputs.fly_app_name }}"
+          flyctl deploy --app ${{ github.event.inputs.fly_app_name }} --remote-only || {
+            echo "Deployment failed. Sending failure callback..."
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              "https://www.needware.dev/api/openclaw-callback" \
+              -d '{
+                "event": "deploy_openclaw",
+                "status": "failed_to_deploy",
+                "clientId": "${{ github.event.inputs.client_id }}",
+                "app_name": "${{ github.event.inputs.fly_app_name }}",
+                "error": "Failed to deploy OpenClaw to Fly.io",
+                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+              }' \
+              -w "%{http_code}" -s
+            echo "Deployment failed. Fly.io status:"
+            flyctl status --app ${{ github.event.inputs.fly_app_name }}
+            exit 1
+          }
+          echo "Deployment successful"
+      - name: Send deploy state callback
+        run: |
+          RESPONSE=$(curl -X POST \
+            -H "Content-Type: application/json" \
+            "https://www.needware.dev/api/openclaw-callback" \
+            -d '{
+              "event": "deploy_openclaw",
+              "status": "deployed",
+              "clientId": "${{ github.event.inputs.client_id }}",
+              "app_name": "${{ github.event.inputs.fly_app_name }}",
+              "app_url": "https://${{ github.event.inputs.fly_app_name }}.fly.dev",
+              "docker_image": "${{ github.event.inputs.docker_image }}",
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+            }' \
+            -w "%{http_code}" -s -o response.json)
+          echo "Callback HTTP Status: $RESPONSE"
+          if [ "$RESPONSE" -ne 200 ] && [ "$RESPONSE" -ne 201 ]; then
+            echo "Failed to send deploy callback. Response:"
+            cat response.json
+            echo "Continuing workflow..."
+          fi
+
+      - name: Scale Fly.io app to 1 machine
+        env:
+          FLY_API_TOKEN: ${{ github.event.inputs.fly_api_token }}
+        run: |
+          echo "Scaling Fly.io app ${{ github.event.inputs.fly_app_name }} to 1 machine"
+          flyctl scale count 1 --app ${{ github.event.inputs.fly_app_name }} --yes || {
+            echo "Failed to scale app. Sending failure callback..."
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              "https://www.needware.dev/api/openclaw-callback" \
+              -d '{
+                "event": "scale_fly_app",
+                "status": "failed_to_scale",
+                "clientId": "${{ github.event.inputs.client_id }}",
+                "app_name": "${{ github.event.inputs.fly_app_name }}",
+                "error": "Failed to scale to 1 machine",
+                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+              }' \
+              -w "%{http_code}" -s
+            echo "Failed to scale app. Current status:"
+            flyctl status --app ${{ github.event.inputs.fly_app_name }}
+            exit 1
+          }
+          echo "Successfully scaled to 1 machine"
+      - name: Send scale state callback
+        run: |
+          RESPONSE=$(curl -X POST \
+            -H "Content-Type: application/json" \
+            "https://www.needware.dev/api/openclaw-callback" \
+            -d '{
+              "event": "scale_fly_app",
+              "status": "scaled",
+              "clientId": "${{ github.event.inputs.client_id }}",
+              "app_name": "${{ github.event.inputs.fly_app_name }}",
+              "machine_count": 1,
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+            }' \
+            -w "%{http_code}" -s -o response.json)
+          echo "Callback HTTP Status: $RESPONSE"
+          if [ "$RESPONSE" -ne 200 ] && [ "$RESPONSE" -ne 201 ]; then
+            echo "Failed to send scale callback. Response:"
+            cat response.json
+            echo "Continuing workflow..."
+          fi
+
+      - name: Write openclaw.json config to /data
+        env:
+          FLY_API_TOKEN: ${{ github.event.inputs.fly_api_token }}
+          OPENCLAW_CONFIG_BASE64: ${{ github.event.inputs.openclaw_config_base64 }}
+        run: |
+          if [ -n "$OPENCLAW_CONFIG_BASE64" ]; then
+            echo "Waiting for machine to be ready..."
+            sleep 15
+            # 解码 base64 配置
+            CONFIG=$(echo "$OPENCLAW_CONFIG_BASE64" | base64 -d)
+            echo "::add-mask::$CONFIG"
+            echo "Writing openclaw.json to /data..."
+            echo "$CONFIG" | flyctl ssh console \
+              --app ${{ github.event.inputs.fly_app_name }} \
+              --command "sh -c 'cat > /data/openclaw.json'"
+            echo "openclaw.json written successfully"
+            # Restart machine to apply new config
+            echo "Restarting machine..."
+            MACHINE_ID=$(flyctl machines list --app ${{ github.event.inputs.fly_app_name }} --json | jq -r '.[0].id')
+            echo "Machine ID: $MACHINE_ID"
+            flyctl machine restart "$MACHINE_ID" --app ${{ github.event.inputs.fly_app_name }} || {
+              echo "Failed to restart machine, continuing..."
+            }
+            echo "Machine restarted successfully"
+          else
+            echo "No openclaw config provided, skipping..."
+          fi
+
+      - name: Verify OpenClaw deployment
+        env:
+          FLY_API_TOKEN: ${{ github.event.inputs.fly_api_token }}
+        run: |
+          echo "Verifying OpenClaw deployment..."
+          flyctl status --app ${{ github.event.inputs.fly_app_name }}
+          echo ""
+          echo "=== OpenClaw Deployment Summary ==="
+          echo "App Name: ${{ github.event.inputs.fly_app_name }}"
+          echo "App URL: https://${{ github.event.inputs.fly_app_name }}.fly.dev"
+          echo "Docker Image: ${{ github.event.inputs.docker_image }}"
+          echo "Region: ${{ github.event.inputs.primary_region }}"
+          echo "Volume: ${{ github.event.inputs.volume_name }} -> /data"
+          echo "Internal Port: 3000"
+          echo "VM: shared-cpu-2x, 2048mb memory"
+          echo "=================================="
