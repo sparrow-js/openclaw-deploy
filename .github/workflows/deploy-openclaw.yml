@@ -50,7 +50,7 @@ jobs:
         run: |
           RESPONSE=$(curl -X POST \
             -H "Content-Type: application/json" \
-            "https://www.needware.dev/api/openclaw-callback" \
+            "https://openclaw.needware.dev/api/openclaw-callback" \
             -d '{
               "event": "start_openclaw_deployment",
               "status": "started",
@@ -134,7 +134,7 @@ jobs:
               echo "Failed to create app. Sending failure callback..."
               curl -X POST \
                 -H "Content-Type: application/json" \
-                "https://www.needware.dev/api/openclaw-callback" \
+                "https://openclaw.needware.dev/api/openclaw-callback" \
                 -d '{
                   "event": "create_fly_app",
                   "status": "failed_to_create",
@@ -152,7 +152,7 @@ jobs:
         run: |
           RESPONSE=$(curl -X POST \
             -H "Content-Type: application/json" \
-            "https://www.needware.dev/api/openclaw-callback" \
+            "https://openclaw.needware.dev/api/openclaw-callback" \
             -d '{
               "event": "create_fly_app",
               "status": "created",
@@ -187,7 +187,7 @@ jobs:
               echo "Failed to create volume. Sending failure callback..."
               curl -X POST \
                 -H "Content-Type: application/json" \
-                "https://www.needware.dev/api/openclaw-callback" \
+                "https://openclaw.needware.dev/api/openclaw-callback" \
                 -d '{
                   "event": "create_fly_volume",
                   "status": "failed_to_create",
@@ -206,7 +206,7 @@ jobs:
         run: |
           RESPONSE=$(curl -X POST \
             -H "Content-Type: application/json" \
-            "https://www.needware.dev/api/openclaw-callback" \
+            "https://openclaw.needware.dev/api/openclaw-callback" \
             -d '{
               "event": "create_fly_volume",
               "status": "created",
@@ -243,7 +243,7 @@ jobs:
         run: |
           RESPONSE=$(curl -X POST \
             -H "Content-Type: application/json" \
-            "https://www.needware.dev/api/openclaw-callback" \
+            "https://openclaw.needware.dev/api/openclaw-callback" \
             -d '{
               "event": "set_gateway_token",
               "status": "token_set",
@@ -282,7 +282,7 @@ jobs:
             echo "Deployment failed. Sending failure callback..."
             curl -X POST \
               -H "Content-Type: application/json" \
-              "https://www.needware.dev/api/openclaw-callback" \
+              "https://openclaw.needware.dev/api/openclaw-callback" \
               -d '{
                 "event": "deploy_openclaw",
                 "status": "failed_to_deploy",
@@ -301,7 +301,7 @@ jobs:
         run: |
           RESPONSE=$(curl -X POST \
             -H "Content-Type: application/json" \
-            "https://www.needware.dev/api/openclaw-callback" \
+            "https://openclaw.needware.dev/api/openclaw-callback" \
             -d '{
               "event": "deploy_openclaw",
               "status": "deployed",
@@ -328,7 +328,7 @@ jobs:
             echo "Failed to scale app. Sending failure callback..."
             curl -X POST \
               -H "Content-Type: application/json" \
-              "https://www.needware.dev/api/openclaw-callback" \
+              "https://openclaw.needware.dev/api/openclaw-callback" \
               -d '{
                 "event": "scale_fly_app",
                 "status": "failed_to_scale",
@@ -347,7 +347,7 @@ jobs:
         run: |
           RESPONSE=$(curl -X POST \
             -H "Content-Type: application/json" \
-            "https://www.needware.dev/api/openclaw-callback" \
+            "https://openclaw.needware.dev/api/openclaw-callback" \
             -d '{
               "event": "scale_fly_app",
               "status": "scaled",

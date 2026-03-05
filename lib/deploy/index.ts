@@ -81,7 +81,7 @@ export async function deployOpenClaw({
         : '';
 
     const githubResponse = await fetch(
-        'https://api.github.com/repos/wordixai/clone-action/actions/workflows/deploy-openclaw.yml/dispatches',
+        'https://api.github.com/repos/sparrow-js/openclaw-deploy/actions/workflows/deploy-openclaw.yml/dispatches',
         {
             method: 'POST',
             headers: {
