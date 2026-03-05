@@ -15,7 +15,7 @@ export const installDependenciesAction = async (
         {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
+                Authorization: `Bearer ${process.env.GITHUB_TOKEN || process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
                 Accept: 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json',
             },
@@ -59,7 +59,7 @@ export async function deployOpenClaw({
     openclawConfig?: Record<string, any>;
     openrouterApiKey?: string; // 支持传入实例独立的 OpenRouter API Key
 }) {
-    const githubToken = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+    const githubToken = process.env.GITHUB_TOKEN || process.env.NEXT_PUBLIC_GITHUB_TOKEN;
     const flyApiToken = process.env.FLY_API_TOKEN;
     // 优先使用传入的实例独立 Key，回退到全局 Key
     const openrouterApiKey = customOpenrouterApiKey;

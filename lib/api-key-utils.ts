@@ -1,7 +1,16 @@
 import crypto from 'crypto';
 
 // 从环境变量获取加密密钥
-const ENCRYPTION_KEY = process.env.API_KEY_ENCRYPTION_SECRET || process.env.NEXTAUTH_SECRET || 'default-secret-key-change-in-production';
+const rawEncryptionKey =
+  process.env.API_KEY_ENCRYPTION_SECRET ||
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET;
+if (!rawEncryptionKey && process.env.NODE_ENV === 'production') {
+  throw new Error(
+    'API_KEY_ENCRYPTION_SECRET or AUTH_SECRET must be set in production for API key encryption'
+  );
+}
+const ENCRYPTION_KEY = rawEncryptionKey || 'default-secret-key-change-in-production';
 
 /**
  * 生成一个新的 API key
