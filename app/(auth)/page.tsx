@@ -12,264 +12,27 @@ import { MODEL_TO_OPENROUTER_ID, CHANNEL_DISPLAY_NAMES } from "@/lib/constants/o
 import { CHANNEL_CONFIGS, MODEL_OPTIONS, CHANNEL_OPTIONS } from "@/lib/constants/openclaw-channels";
 import { AppHeader } from "@/components/AppHeader";
 
-// ===== 连接通道弹窗组件 =====
-function ConnectChannelModal({
-  channel,
-  isOpen,
-  onClose,
-  onConnect,
-}: {
-  channel: ChannelOption;
-  isOpen: boolean;
-  onClose: () => void;
-  onConnect: (credentials: Record<string, string>) => void;
-}) {
-  const [token, setToken] = useState("");
-  const [showToken, setShowToken] = useState(false);
-  const [multiInputs, setMultiInputs] = useState<Record<string, string>>({});
-  const [showFields, setShowFields] = useState<Record<string, boolean>>({});
-  const modalRef = useRef<HTMLDivElement>(null);
-  const config = CHANNEL_CONFIGS[channel];
-  const hasMultiInputs = !!config.inputs && config.inputs.length > 0;
-
-  useEffect(() => {
-    setToken("");
-    setShowToken(false);
-    setMultiInputs({});
-    setShowFields({});
-  }, [channel]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, onClose]);
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    if (isOpen) {
-      document.addEventListener("keydown", handleEsc);
-    }
-    return () => document.removeEventListener("keydown", handleEsc);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  let stepCounter = 0;
-
-  const handleSubmit = () => {
-    if (hasMultiInputs) {
-      const emptyField = config.inputs!.find((f) => !multiInputs[f.key]?.trim());
-      if (emptyField) {
-        toast.error(`Please enter ${emptyField.label}`);
-        return;
-      }
-      onConnect(multiInputs);
-    } else {
-      if (!token.trim()) {
-        toast.error("Please enter a token");
-        return;
-      }
-      onConnect({ token });
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/30 backdrop-blur-sm">
-      <div
-        ref={modalRef}
-        className="oc-modal-enter w-full max-w-[580px] max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-7 md:p-8 space-y-5 scrollbar-hide shadow-2xl"
-      >
-        {/* 头部 */}
-        <div className="flex items-start gap-4">
-          <div
-            className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center"
-            style={{ backgroundColor: config.accentColor + "12" }}
-          >
-            {config.icon}
-          </div>
-          <div className="flex-1 min-w-0 pt-1">
-            <h2 className="text-gray-900 text-[22px] font-bold tracking-tight">Connect {config.name}</h2>
-            <p className="text-gray-500 text-sm mt-0.5">{config.subtitle}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 shrink-0"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* 分区步骤说明 */}
-        {config.sections.map((section, sectionIdx) => (
-          <div key={sectionIdx} className="rounded-xl border border-gray-100 bg-gray-50/70 px-5 py-4 space-y-3">
-            <p
-              className="text-[11px] font-bold tracking-[0.14em] uppercase"
-              style={{ color: config.accentColor }}
-            >
-              {section.title}
-            </p>
-            {section.steps.map((stepContent, stepIdx) => {
-              stepCounter++;
-              return (
-                <div key={stepIdx} className="flex items-start gap-3">
-                  <span
-                    className="shrink-0 mt-0.5 w-6 h-6 rounded-lg text-[12px] font-bold flex items-center justify-center text-white"
-                    style={{ backgroundColor: config.accentColor }}
-                  >
-                    {stepCounter}
-                  </span>
-                  <p className="text-gray-600 text-[14px] leading-relaxed">
-                    {stepContent}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        ))}
-
-        {/* 输入区域 */}
-        {hasMultiInputs ? (
-          <div className="space-y-3">
-            {config.inputs!.map((field) => (
-              <div key={field.key} className="space-y-2">
-                <label className="text-gray-500 text-[12px] font-semibold uppercase tracking-wider">
-                  {field.label}
-                </label>
-                <div className="relative">
-                  <input
-                    type={field.secret && !showFields[field.key] ? "password" : "text"}
-                    value={multiInputs[field.key] || ""}
-                    onChange={(e) =>
-                      setMultiInputs((prev) => ({ ...prev, [field.key]: e.target.value }))
-                    }
-                    placeholder={field.placeholder}
-                    className="w-full px-4 py-3.5 pr-12 rounded-xl border border-gray-200 bg-white text-gray-900 text-[14px] font-mono placeholder-gray-400 outline-none transition-all duration-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200"
-                    style={{
-                      borderColor: multiInputs[field.key] ? config.accentColor + "66" : undefined,
-                    }}
-                  />
-                  {field.secret && (
-                    <button
-                      onClick={() =>
-                        setShowFields((prev) => ({ ...prev, [field.key]: !prev[field.key] }))
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      {showFields[field.key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="relative">
-            <input
-              type={showToken ? "text" : "password"}
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder={config.placeholder}
-              className="w-full px-4 py-3.5 pr-12 rounded-xl border border-gray-200 bg-white text-gray-900 text-[14px] font-mono placeholder-gray-400 outline-none transition-all duration-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200"
-              style={{ borderColor: token ? config.accentColor + "66" : undefined }}
-            />
-            <button
-              onClick={() => setShowToken(!showToken)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-        )}
-
-        {/* 底部操作栏 */}
-        <div className="flex items-center justify-between pt-2">
-          <a
-            href={config.linkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-[14px] font-medium transition-colors"
-            style={{ color: config.linkColor }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = config.linkColorHover)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = config.linkColor)}
-          >
-            {config.linkText}
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-          <button
-            onClick={handleSubmit}
-            className="px-8 py-2.5 rounded-xl text-white text-[15px] font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-            style={{
-              backgroundColor: config.accentColor,
-              boxShadow: `0 4px 14px ${config.accentColor}40`,
-            }}
-          >
-            {config.buttonText}
-          </button>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .oc-modal-enter {
-          animation: ocModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes ocModalIn {
-          from { opacity: 0; transform: scale(0.95) translateY(16px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// ===== 连接通道内联表单（弹窗内容直接放在页面下方） =====
+// ===== 连接通道内联表单 =====
 function ConnectChannelInline({
   channel,
-  onConnect,
+  credentials,
+  onCredentialChange,
 }: {
   channel: ChannelOption;
-  onConnect: (credentials: Record<string, string>) => void;
+  credentials: Record<string, string>;
+  onCredentialChange: (key: string, value: string) => void;
 }) {
-  const [token, setToken] = useState("");
   const [showToken, setShowToken] = useState(false);
-  const [multiInputs, setMultiInputs] = useState<Record<string, string>>({});
   const [showFields, setShowFields] = useState<Record<string, boolean>>({});
   const config = CHANNEL_CONFIGS[channel];
   const hasMultiInputs = !!config.inputs && config.inputs.length > 0;
 
   useEffect(() => {
-    setToken("");
     setShowToken(false);
-    setMultiInputs({});
     setShowFields({});
   }, [channel]);
 
   let stepCounter = 0;
-
-  const handleSubmit = () => {
-    if (hasMultiInputs) {
-      const emptyField = config.inputs!.find((f) => !multiInputs[f.key]?.trim());
-      if (emptyField) {
-        toast.error(`Please enter ${emptyField.label}`);
-        return;
-      }
-      onConnect(multiInputs);
-    } else {
-      if (!token.trim()) {
-        toast.error("Please enter a token");
-        return;
-      }
-      onConnect({ token });
-    }
-  };
 
   return (
     <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 space-y-3">
@@ -323,14 +86,12 @@ function ConnectChannelInline({
               <div className="relative">
                 <input
                   type={field.secret && !showFields[field.key] ? "password" : "text"}
-                  value={multiInputs[field.key] || ""}
-                  onChange={(e) =>
-                    setMultiInputs((prev) => ({ ...prev, [field.key]: e.target.value }))
-                  }
+                  value={credentials[field.key] || ""}
+                  onChange={(e) => onCredentialChange(field.key, e.target.value)}
                   placeholder={field.placeholder}
                   className="w-full px-3.5 py-2.5 pr-12 rounded-xl border border-gray-200 bg-white text-gray-900 text-[13px] font-mono placeholder-gray-400 outline-none transition-all duration-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200"
                   style={{
-                    borderColor: multiInputs[field.key] ? config.accentColor + "66" : undefined,
+                    borderColor: credentials[field.key] ? config.accentColor + "66" : undefined,
                   }}
                 />
                 {field.secret && (
@@ -352,11 +113,11 @@ function ConnectChannelInline({
         <div className="relative">
           <input
             type={showToken ? "text" : "password"}
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
+            value={credentials.token || ""}
+            onChange={(e) => onCredentialChange("token", e.target.value)}
             placeholder={config.placeholder}
             className="w-full px-3.5 py-2.5 pr-12 rounded-xl border border-gray-200 bg-white text-gray-900 text-[13px] font-mono placeholder-gray-400 outline-none transition-all duration-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200"
-            style={{ borderColor: token ? config.accentColor + "66" : undefined }}
+            style={{ borderColor: credentials.token ? config.accentColor + "66" : undefined }}
           />
           <button
             type="button"
@@ -368,31 +129,18 @@ function ConnectChannelInline({
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-1">
-        <a
-          href={config.linkUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-[14px] font-medium transition-colors"
-          style={{ color: config.linkColor }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = config.linkColorHover)}
-          onMouseLeave={(e) => (e.currentTarget.style.color = config.linkColor)}
-        >
-          {config.linkText}
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="px-6 py-2 rounded-xl text-white text-[14px] font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-          style={{
-            backgroundColor: config.accentColor,
-            boxShadow: `0 4px 14px ${config.accentColor}40`,
-          }}
-        >
-          {config.buttonText}
-        </button>
-      </div>
+      <a
+        href={config.linkUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1.5 text-[14px] font-medium transition-colors pt-1"
+        style={{ color: config.linkColor }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = config.linkColorHover)}
+        onMouseLeave={(e) => (e.currentTarget.style.color = config.linkColor)}
+      >
+        {config.linkText}
+        <ExternalLink className="w-3.5 h-3.5" />
+      </a>
     </div>
   );
 }
@@ -568,12 +316,11 @@ export default function OpenClawInstallPage() {
     setSelectedChannel(channel);
   };
 
-  const handleConnect = (channel: ChannelOption, credentials: Record<string, string>) => {
+  const handleCredentialChange = (channel: ChannelOption, key: string, value: string) => {
     setChannelCredentials((prev) => ({
       ...prev,
-      [channel]: credentials,
+      [channel]: { ...(prev[channel] || {}), [key]: value },
     }));
-    toast.success(`${CHANNEL_CONFIGS[channel].name} connected successfully!`);
   };
 
   const handleInlineCheckout = useCallback(async (plan: typeof PLANS[number]) => {
@@ -597,7 +344,13 @@ export default function OpenClawInstallPage() {
     }
   }, [session, billingPeriod]);
 
-  const isChannelConnected = !!channelCredentials[selectedChannel];
+  const isChannelConnected = (() => {
+    const creds = channelCredentials[selectedChannel];
+    if (!creds) return false;
+    const cfg = CHANNEL_CONFIGS[selectedChannel];
+    if (cfg.inputs?.length) return cfg.inputs.every((f) => creds[f.key]?.trim());
+    return !!creds.token?.trim();
+  })();
 
   const handleStartTrial = useCallback(async () => {
     if (!instanceName.trim()) {
@@ -711,7 +464,7 @@ export default function OpenClawInstallPage() {
       );
       toast.error(err.message || "Failed to start deployment");
     }
-  }, [instanceName, isChannelConnected, isDeploying, clientId, selectedChannel]);
+  }, [instanceName, isChannelConnected, isDeploying, clientId, selectedChannel, channelCredentials]);
 
   const channelDisplayName = CHANNEL_DISPLAY_NAMES[selectedChannel];
 
@@ -1034,7 +787,13 @@ export default function OpenClawInstallPage() {
           <div className="grid grid-cols-3 gap-2.5">
             {CHANNEL_OPTIONS.map((ch) => {
               const isSelected = selectedChannel === ch.key;
-              const isConnected = !!channelCredentials[ch.key];
+              const isConnected = (() => {
+                const creds = channelCredentials[ch.key];
+                if (!creds) return false;
+                const cfg = CHANNEL_CONFIGS[ch.key];
+                if (cfg.inputs?.length) return cfg.inputs.every((f) => creds[f.key]?.trim());
+                return !!creds.token?.trim();
+              })();
               return (
                 <button
                   key={ch.key}
@@ -1070,10 +829,10 @@ export default function OpenClawInstallPage() {
               );
             })}
           </div>
-          {/* 连接通道表单直接放在下方，无需弹窗 */}
           <ConnectChannelInline
             channel={selectedChannel}
-            onConnect={(credentials) => handleConnect(selectedChannel, credentials)}
+            credentials={channelCredentials[selectedChannel] || {}}
+            onCredentialChange={(key, value) => handleCredentialChange(selectedChannel, key, value)}
           />
         </div>
 
