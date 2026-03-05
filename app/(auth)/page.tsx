@@ -248,11 +248,13 @@ export default function OpenClawInstallPage() {
 
   // 订阅 Supabase broadcast 频道，clientId 就绪后即建立连接，不依赖 isDeploying
   useEffect(() => {
+    console.log('****************', clientId)
     if (!clientId) return;
 
     const channel = supabase
       .channel(`private:${clientId}`)
       .on("broadcast", { event: "openclaw" }, (payload: { payload: any }) => {
+        console.log('payload', payload);
         // 仅在部署中才处理事件
         if (!isDeployingRef.current) return;
 

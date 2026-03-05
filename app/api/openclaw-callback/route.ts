@@ -45,15 +45,24 @@ export async function POST(req: Request) {
   // Strip "app-" prefix from clientId for database operations if it exists
   const dbClientId = clientId.startsWith('app-') ? clientId.substring(4) : clientId;
 
+  console.log('clientId', clientId);
+  console.log('dbClientId', dbClientId);
+  console.log('status', status);
+  console.log('url', url);
+  console.log('event', event);
+  console.log('additionalData', additionalData);
+
   try {
     // Send real-time update via Supabase broadcast
-    await broadcast(clientId, 'openclaw', {
+    const result = await broadcast(clientId, 'openclaw', {
       status,
       appId: clientId,
       url: url || additionalData.app_url,
       event,
       ...additionalData,
     });
+
+    console.log('result', result);
 
     const deployUrl = url || additionalData.app_url;
     const timestamp = additionalData.timestamp || new Date().toISOString();
