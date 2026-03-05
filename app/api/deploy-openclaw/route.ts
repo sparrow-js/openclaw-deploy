@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 import { deployOpenClaw } from '@/lib/deploy';
-import { UNLIMITED_DEPLOY_EMAILS } from '@/lib/deploy/config';
+import { UNLIMITED_DEPLOY_EMAILS, OPENCLAW_SUBSCRIPTION_EXEMPT_EMAILS } from '@/lib/deploy/config';
 import { auth } from '@/auth';
 import { db } from '@/db';
-import { openclaw, openclawCredits } from '@/db/schema';
-import { eq, and, ne } from 'drizzle-orm';
+import { openclaw, openclawCredits, subscription } from '@/db/schema';
+import { eq, and, ne, inArray } from 'drizzle-orm';
+
+const OPENCLAW_PRODUCT_IDS = [
+  'prod_6675ACpu5rlPbMGHCqm6iD',
+  'prod_2zVx4AYK0BByTZBc38mjGH',
+  'prod_Bka9IjmZdNWqNUTGqShCD',
+  'prod_7L8YvbSJH22uSIhj2klY3T',
+];
 
 export async function POST(request: Request) {
   try {
@@ -40,8 +47,35 @@ export async function POST(request: Request) {
       );
     }
 
+    // 检查用户是否有活跃的 OpenClaw 订阅（白名单邮箱可跳过）
+    const userEmail = session?.user?.email ?? '';
+    const exemptFromSubscription = OPENCLAW_SUBSCRIPTION_EXEMPT_EMAILS.includes(userEmail);
+
+    if (!exemptFromSubscription) {
+      const activeSubscriptions = await db
+        .select({ id: subscription.id })
+        .from(subscription)
+        .where(
+          and(
+            eq(subscription.userId, userId),
+            inArray(subscription.product, OPENCLAW_PRODUCT_IDS),
+            eq(subscription.status, 'active')
+          )
+        )
+        .limit(1);
+
+      if (activeSubscriptions.length === 0) {
+        return NextResponse.json(
+          {
+            error: 'An active OpenClaw subscription is required to deploy. Please subscribe first.',
+            code: 'NO_OPENCLAW_SUBSCRIPTION',
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     // 检查用户是否已有部署（非 deleted 状态），豁免邮箱不受限制
-    const userEmail = session?.user?.email;
     if (!UNLIMITED_DEPLOY_EMAILS.includes(userEmail || '')) {
       const [existingDeploy] = await db
         .select({ id: openclaw.id })
@@ -64,7 +98,7 @@ export async function POST(request: Request) {
       .where(eq(openclawCredits.userId, userId))
       .limit(1);
 
-    const userApiKey = openrouterApiKey || userCredits?.openrouterApiKey;
+    const userApiKey = openrouterApiKey || userCredits?.openrouterApiKey || process.env.OPEN_ROUTER_API_KEY;
 
     if (!userApiKey) {
       return NextResponse.json(

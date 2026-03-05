@@ -428,8 +428,7 @@ export default function OpenClawInstallPage() {
   const [clientId, setClientId] = useState<string>("");
   const [deployRecordId, setDeployRecordId] = useState<string>("");
 
-  // OpenClaw Credits 检测 & 订阅弹窗
-  const [hasOpenclawCredits, setHasOpenclawCredits] = useState<boolean | null>(null); // null = loading
+  // 订阅弹窗（由 deploy API 返回无订阅时打开）
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("monthly");
   const [isCheckoutProcessing, setIsCheckoutProcessing] = useState<string | null>(null);
@@ -452,44 +451,6 @@ export default function OpenClawInstallPage() {
     if (session?.user?.id) {
       setClientId(`openclaw-${session.user.id.slice(0, 8)}-${Date.now().toString(36)}`);
     }
-  }, [session?.user?.id]);
-
-  // 页面加载时检查订阅和额度状态（仅记录状态，不弹窗）
-  useEffect(() => {
-    if (!session?.user?.id) return;
-
-    const checkSubscriptionAndCredits = async () => {
-      try {
-        // 1. 先检查是否有活跃的 OpenClaw 订阅
-        const subRes = await fetch("/api/openclaw/subscription");
-        if (!subRes.ok) {
-          setHasOpenclawCredits(false);
-          return;
-        }
-        const subData = await subRes.json();
-
-        if (!subData.success || !subData.hasSubscription) {
-          // 没有订阅，记录状态（点击 Start Deploy 时再弹窗）
-          setHasOpenclawCredits(false);
-          return;
-        }
-
-        // 2. 有订阅，继续检查额度
-        const res = await fetch("/api/openclaw/credits");
-        if (!res.ok) {
-          setHasOpenclawCredits(false);
-          return;
-        }
-        const data = await res.json();
-        // 有数据则判断有凭证
-        const hasCredits = data.success && !!data.data;
-        setHasOpenclawCredits(hasCredits);
-      } catch {
-        setHasOpenclawCredits(false);
-      }
-    };
-
-    checkSubscriptionAndCredits();
   }, [session?.user?.id]);
 
   // 拉取部署列表（用于第一屏漂浮小龙虾个数）
@@ -649,12 +610,6 @@ export default function OpenClawInstallPage() {
       handleChannelClick(selectedChannel);
       return;
     }
-    
-    // 检查是否有 OpenClaw Credits，没有则弹出订阅弹窗
-    if (!hasOpenclawCredits) {
-      setPricingModalOpen(true);
-      return;
-    }
 
     if (isDeploying) return;
 
@@ -733,6 +688,13 @@ export default function OpenClawInstallPage() {
       const data = await res.json();
 
       if (!res.ok || data.error) {
+        // 无订阅时由 API 返回 403 + code，打开定价弹窗并提前返回
+        if (res.status === 403 && data.code === "NO_OPENCLAW_SUBSCRIPTION") {
+          setPricingModalOpen(true);
+          toast.info(data.error || "An OpenClaw subscription is required.");
+          setIsDeploying(false);
+          return;
+        }
         throw new Error(data.error || "Failed to trigger deployment");
       }
 
@@ -749,7 +711,7 @@ export default function OpenClawInstallPage() {
       );
       toast.error(err.message || "Failed to start deployment");
     }
-  }, [instanceName, isChannelConnected, isDeploying, clientId, selectedChannel, hasOpenclawCredits]);
+  }, [instanceName, isChannelConnected, isDeploying, clientId, selectedChannel]);
 
   const channelDisplayName = CHANNEL_DISPLAY_NAMES[selectedChannel];
 

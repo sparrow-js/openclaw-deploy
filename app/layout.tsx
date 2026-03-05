@@ -78,7 +78,7 @@ export const metadata: Metadata = {
   classification: 'Software Development Platform',
   // 使用 public 下已有图标，避免 Next 解析不存在的 app/favicon.ico 报错
   icons: {
-    icon: '/claude.svg',
+    icon: '/logo.png',
   },
 }
 
