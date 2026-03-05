@@ -8,15 +8,7 @@
     "lint": "next lint",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit push",
-    "db:start": "docker-compose up -d",
-    "db:stop": "docker-compose down",
-    "db:restart": "docker-compose restart",
-    "db:reset": "docker-compose down -v && docker-compose up -d && pnpm run migrate",
-    "db:logs": "docker-compose logs -f postgres",
-    "db:test": "node -e \"require('./scripts/test-db.js')\"",
-    "db:studio": "bash scripts/studio.sh",
-    "db:psql": "docker exec -it genfly-postgres psql -U postgres -d genfly_dev",
-    "db:query": "node scripts/query-db.js"
+    "db:studio": "bash scripts/studio.sh"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.8.0",

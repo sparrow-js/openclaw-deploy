@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import LoginGithubButton from "./login-git-button";
 import LoginGoogleButton from "./login-google-button";
-import LoginNotionButton from "./login-notion-button";
+// import LoginNotionButton from "./login-notion-button";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -120,13 +120,13 @@ export default function LoginPage() {
                   <LoginGithubButton className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-gray-700 text-[14px] font-medium hover:border-gray-300 hover:shadow-sm transition-all duration-200 cursor-pointer" />
                 </Suspense>
 
-                <Suspense
+                {/* <Suspense
                   fallback={
                     <div className="h-12 w-full rounded-xl bg-gray-100 animate-pulse" />
                   }
                 >
                   <LoginNotionButton className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-gray-700 text-[14px] font-medium hover:border-gray-300 hover:shadow-sm transition-all duration-200 cursor-pointer" />
-                </Suspense>
+                </Suspense> */}
               </div>
 
               {/* 分隔线 */}
