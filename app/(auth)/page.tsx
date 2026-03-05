@@ -248,7 +248,6 @@ export default function OpenClawInstallPage() {
 
   // 订阅 Supabase broadcast 频道，clientId 就绪后即建立连接，不依赖 isDeploying
   useEffect(() => {
-    console.log('****************', clientId)
     if (!clientId) return;
 
     const channel = supabase

@@ -46,11 +46,6 @@ export async function POST(req: Request) {
   const dbClientId = clientId.startsWith('app-') ? clientId.substring(4) : clientId;
 
   console.log('clientId', clientId);
-  console.log('dbClientId', dbClientId);
-  console.log('status', status);
-  console.log('url', url);
-  console.log('event', event);
-  console.log('additionalData', additionalData);
 
   try {
     // Send real-time update via Supabase broadcast
@@ -62,7 +57,6 @@ export async function POST(req: Request) {
       ...additionalData,
     });
 
-    console.log('result', result);
 
     const deployUrl = url || additionalData.app_url;
     const timestamp = additionalData.timestamp || new Date().toISOString();
