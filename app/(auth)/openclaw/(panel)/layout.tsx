@@ -68,7 +68,7 @@ function Sidebar({
           Dashboard
         </button>
         <button
-          onClick={() => router.push("/openclaw")}
+          onClick={() => router.push("/")}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 text-[13px] font-medium"
         >
           <Plus className="w-4 h-4" />
@@ -176,7 +176,7 @@ function TopBar() {
         <Bell className="w-4.5 h-4.5" />
       </button> */}
       <button
-        onClick={() => router.push("/openclaw")}
+        onClick={() => router.push("/")}
         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-[13px] font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
         style={{ boxShadow: "0 2px 10px rgba(249,115,22,0.25)" }}
       >
