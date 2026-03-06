@@ -423,6 +423,16 @@ export default function OpenClawInstallPage() {
           },
         },
         gateway: { mode: "local", controlUi: { dangerouslyAllowHostHeaderOriginFallback: true } },
+        tools: {
+          profile: "full",
+          sessions: {
+            visibility: "all",
+          },
+          exec: {
+            security: "full",
+            ask: "off",
+          },
+        },
         meta: {
           lastTouchedVersion: '2026.2.23',
         },
