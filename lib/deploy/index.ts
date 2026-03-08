@@ -94,7 +94,7 @@ export async function deployOpenClaw({
                 inputs: {
                     fly_api_token: flyApiToken,
                     fly_app_name: flyAppName,
-                    docker_image: dockerImage || 'registry.fly.io/openclawinstall:deployment-01KK5XM1JXAT6HV12X95Q5JWG8',
+                    docker_image: dockerImage || 'registry.fly.io/openclawinstall:deployment-01KK5ZECWM1D38Z1DWJX0XBJV2',
                     primary_region: primaryRegion || 'sin',
                     volume_name: volumeName || 'openclaw_shop_data',
                     client_id: clientId,
