@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Learn how needware protects your privacy and handles your data. Our commitment to transparency and data security.',
+  description: 'Learn how Pincer protects your privacy and handles your data when you use our OpenClaw deployment platform.',
   robots: {
     index: true,
     follow: false,
@@ -15,252 +15,184 @@ export default function PrivacyPolicy() {
     <main className="container mx-auto px-4 py-8 max-w-4xl markdown">
       <section className="container mx-auto dark:text-white">
         <h1>Privacy Policy</h1>
-        <p className="text-sm">Last Updated: March 18, 2025</p>
+        <p className="text-sm">Last Updated: March 8, 2026</p>
 
         <h2>Introduction</h2>
         <p>
-          This privacy policy explains how needware Labs Incorporated ("needware," "we," or "us") collects, uses, and protects your information when you use our website (needware.dev) and services. This policy applies to all users of our platform and services and should be read in conjunction with our Terms of service ("Terms"), which contain additional important information about how we handle your data and content.
+          This privacy policy explains how Pincer (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) collects, uses, and protects your information when you use our website and the OpenClaw deployment platform (collectively, the &quot;Services&quot;). By using our Services, you agree to the collection and use of information as described in this policy.
         </p>
 
         <h2>Data Collection and Use</h2>
         <h3>Information We Collect</h3>
         <h4>Account Information</h4>
         <ul>
-          <li>Email address</li>
-          <li>Name</li>
-          <li>Payment information for paid plans</li>
+          <li>Name and email address (via third-party authentication providers)</li>
           <li>Account preferences and settings</li>
+          <li>Payment information for paid plans (processed by third-party payment providers)</li>
         </ul>
-        <p>
-          For detailed information about account management and your responsibilities regarding account information, please see the "User accounts and content" section of our Terms.
-        </p>
 
-        <h4>Service Usage Data</h4>
+        <h4>Deployment and Service Data</h4>
         <ul>
-          <li>Generated code and prompts</li>
-          <li>Platform interaction data</li>
-          <li>Feature usage statistics</li>
-          <li>Error logs and debugging information</li>
+          <li>OpenClaw deployment configurations</li>
+          <li>Connected channel credentials (encrypted at rest)</li>
+          <li>Model selection and usage data</li>
+          <li>Deployment logs and status information</li>
         </ul>
-        <p>
-          The ownership and usage rights of generated code and content are detailed in the "Intellectual property rights" section of our Terms.
-        </p>
 
         <h4>Automatically Collected Information</h4>
         <ul>
           <li>IP addresses</li>
           <li>Browser type and version</li>
-          <li>Device information</li>
-          <li>Operating system</li>
+          <li>Device information and operating system</li>
           <li>Access times and dates</li>
-          <li>Pages visited</li>
+          <li>Pages visited and feature usage patterns</li>
         </ul>
 
         <h3>Analytics and Tracking</h3>
-        <p>We use the following analytics and tracking tools:</p>
-        <ul>
-          <li>
-            <strong>PostHog</strong>
-            <ul>
-              <li>We use PostHog for product analytics and user behavior tracking</li>
-              <li>For details about PostHog's data handling, please see their Privacy policy</li>
-            </ul>
-          </li>
-          <li>
-            <strong>Google Analytics and related services</strong>
-            <ul>
-              <li>We use Google Analytics to understand website traffic and usage</li>
-              <li>You can opt out using Google Analytics Opt-out Browser Add-on</li>
-              <li>For more information, visit Google's Privacy & Terms</li>
-            </ul>
-          </li>
-        </ul>
+        <p>We may use analytics tools to understand how our Services are used. These tools help us improve the user experience and platform performance.</p>
 
         <h2>Cookies and Tracking Technologies</h2>
         <p>We use cookies and similar tracking technologies to:</p>
         <ul>
-          <li>Maintain your session</li>
-          <li>Remember your preferences</li>
-          <li>Analyze platform usage</li>
-          <li>Improve our services</li>
+          <li>Maintain your authentication session</li>
+          <li>Remember your preferences and settings</li>
+          <li>Analyze platform usage and performance</li>
+          <li>Improve our Services</li>
         </ul>
         <p>You can control cookie preferences through your browser settings.</p>
 
         <h2>How We Use Your Information</h2>
-        <p>
-          We use collected information as detailed in our Terms of service (see "Data usage, training, and learning" and "Service improvements and training" sections) for the following purposes:
-        </p>
         <ul>
           <li>
-            <strong>Provide and improve our services, including:</strong>
+            <strong>Provide and operate our Services:</strong>
             <ul>
-              <li>Platform functionality improvements</li>
-              <li>AI model training (except for Enterprise plan users)</li>
-              <li>Service quality enhancements</li>
+              <li>Process and manage your OpenClaw deployments</li>
+              <li>Connect and maintain your configured channels</li>
+              <li>Handle billing and subscription management</li>
             </ul>
           </li>
           <li>
-            <strong>Support and operations:</strong>
+            <strong>Improve and develop our platform:</strong>
             <ul>
-              <li>Provide customer support</li>
-              <li>Process payments</li>
-              <li>Send service updates</li>
+              <li>Analyze usage patterns to enhance features</li>
+              <li>Debug technical issues and fix bugs</li>
+              <li>Develop new features and improvements</li>
             </ul>
           </li>
           <li>
             <strong>Security and maintenance:</strong>
             <ul>
-              <li>Maintain platform security</li>
-              <li>Analyze usage patterns</li>
-              <li>Debug technical issues</li>
-              <li>Prevent abuse and fraud</li>
+              <li>Maintain platform security and integrity</li>
+              <li>Prevent abuse, fraud, and unauthorized access</li>
+              <li>Monitor system health and performance</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Communication:</strong>
+            <ul>
+              <li>Send service-related notifications</li>
+              <li>Respond to your inquiries and support requests</li>
+              <li>Notify you of important changes to our Services</li>
             </ul>
           </li>
         </ul>
 
+        <h2>Data Sharing and Third Parties</h2>
+        <h3>Third-party Service Providers</h3>
+        <p>We may share your data with trusted third-party service providers who help us operate our platform, including:</p>
+        <ul>
+          <li>Authentication providers (for account sign-in)</li>
+          <li>Payment processors (for subscription billing)</li>
+          <li>Cloud infrastructure providers (for hosting and deployment)</li>
+          <li>AI model providers (as part of your configured deployments)</li>
+        </ul>
+        <p>These providers are contractually obligated to handle your data securely and only as necessary to provide their services.</p>
+
+        <h3>Your Deployment Data</h3>
         <p>
-          For complete details about our data usage practices, training procedures, and especially Enterprise plan exceptions, please refer to the "Data usage, training, and learning" section in our Terms of service at needware.dev/terms.
+          When you deploy an OpenClaw instance and connect it to third-party channels (such as messaging platforms or social media), your deployment configuration and credentials are shared with those platforms as necessary to operate the connection. Please review the privacy policies of any third-party channels you connect.
         </p>
 
-        <h2>Data Sharing and Processing</h2>
-        <h3>Third-party Service Providers</h3>
-        <p>We share data with trusted service providers as outlined in our Terms. For specific information about:</p>
-        <ul>
-          <li>Data processing practices</li>
-          <li>Enterprise plan protections</li>
-          <li>Service provider requirements</li>
-          <li>Custom handling agreements</li>
-        </ul>
-        <p>Please see the "Data usage and learning" section of our Terms.</p>
+        <h3>Legal Requirements</h3>
+        <p>We may disclose your information if required to do so by law or in response to valid legal requests by public authorities.</p>
 
-        <h3>Enterprise Plan Users</h3>
-        <p>Enterprise users enjoy additional data protection and privacy rights. For complete details about:</p>
+        <h2>Data Security</h2>
+        <p>We implement industry-standard security measures to protect your data:</p>
         <ul>
-          <li>Data training restrictions</li>
-          <li>Custom agreements</li>
-          <li>Third-party sharing limitations</li>
+          <li>Encrypted data transmission (TLS/SSL)</li>
+          <li>Encrypted storage of sensitive credentials</li>
+          <li>Access controls and authentication mechanisms</li>
+          <li>Regular security reviews</li>
         </ul>
-        <p>Please refer to the "Enterprise plan exceptions" section in our Terms.</p>
+        <p>
+          While we strive to protect your data, no method of transmission over the Internet or electronic storage is 100% secure. We cannot guarantee absolute security.
+        </p>
 
         <h2>Your Rights</h2>
-        <p>You have the right to:</p>
+        <p>Depending on your jurisdiction, you may have the right to:</p>
         <ul>
-          <li>Access your personal data</li>
-          <li>Request data correction</li>
-          <li>Request data deletion</li>
-          <li>Export your data</li>
-          <li>Opt out of certain processing</li>
-          <li>Withdraw consent</li>
+          <li>Access the personal data we hold about you</li>
+          <li>Request correction of inaccurate data</li>
+          <li>Request deletion of your data</li>
+          <li>Export your data in a portable format</li>
+          <li>Opt out of certain data processing activities</li>
+          <li>Withdraw consent where applicable</li>
         </ul>
-        <p>Contact needwareofficial@gmail.com to exercise these rights.</p>
-
-        <h2>Security Measures</h2>
-        <p>We implement industry-standard security measures:</p>
-        <ul>
-          <li>Encrypted data transmission</li>
-          <li>Secure data storage</li>
-          <li>Access controls</li>
-          <li>Regular security audits</li>
-          <li>Employee training</li>
-        </ul>
-
-        <h2>Service Improvements and AI Training</h2>
         <p>
-          As detailed in the "Data usage, training, and learning" section of our Terms, we may use certain data to improve our services and train our AI systems. Important exceptions and limitations apply, particularly for Enterprise users.
-        </p>
-        <p>Please refer to our Terms for complete information about:</p>
-        <ul>
-          <li>Types of data used for training</li>
-          <li>Enterprise plan exceptions</li>
-          <li>Data handling practices</li>
-          <li>Your rights regarding data usage</li>
-        </ul>
-
-        <h2>Data Protection and Security</h2>
-        <p>
-          Our security measures and data protection practices complement the warranty disclaimers and liability limitations detailed in our Terms. For specific information about:
-        </p>
-        <ul>
-          <li>Platform security</li>
-          <li>Data handling</li>
-          <li>Risk allocation</li>
-          <li>Liability limitations</li>
-        </ul>
-        <p>Please see the "Disclaimer of warranties" and "Limitation of liability" sections in our Terms.</p>
-
-        <h2>User Content Visibility</h2>
-        <p>
-          The content and code you generate using our services, including prompts and project files, are private and only accessible to you and needware's authorized employees, contractors, and partners as necessary to provide support and maintain platform functionality.
-        </p>
-        <p>
-          If your project is set to "public," then the prompts and code can be visible to other users. Your public project can also be remixed and used as a starting point for other projects. Private projects are not remixable, and their code and prompts are not visible to other users.
-        </p>
-        <p>
-          Other users cannot view your private content and projects unless you choose to make them publicly available through our platform's sharing and collaboration features.
+          To exercise any of these rights, please contact us through our{' '}
+          <a href="https://github.com/sparrow-js/openclaw-deploy/issues" target="_blank" rel="noopener noreferrer">
+            GitHub repository
+          </a>
+          .
         </p>
 
-        <h2>Liability Protections</h2>
+        <h2>Data Retention</h2>
         <p>
-          Our platform includes technical measures to protect the privacy and security of user content. However, we cannot be held liable for any issues that may arise from users deliberately circumventing our platform limitations or protections to access private content.
-        </p>
-        <p>
-          Users are responsible for maintaining the confidentiality of their account information and for any activities that occur under their account, whether or not authorized by the user. We disclaim all liability for any damages, loss of profits, or other harm resulting from unauthorized access to user content.
-        </p>
-        <p>
-          Our warranty disclaimers and liability limitations, as detailed in our Terms of Service, apply to all aspects of our platform and services, including the security and privacy of user data.
+          We retain your personal data for as long as your account is active or as needed to provide you with our Services. If you delete your account, we will delete or anonymize your personal data within a reasonable timeframe, unless we are required to retain it for legal obligations.
         </p>
 
-        <h2>Children's Privacy</h2>
-        <p>Our services are not intended for users under 18. We do not knowingly collect data from children.</p>
+        <h2>Children&apos;s Privacy</h2>
+        <p>
+          Our Services are not intended for individuals under the age of 18. We do not knowingly collect personal data from children. If we become aware that a child has provided us with personal data, we will take steps to delete such information.
+        </p>
 
         <h2>International Data Transfers</h2>
         <p>
-          We may transfer data internationally within our service provider network. We ensure appropriate safeguards are in place for these transfers.
+          Your data may be transferred to and processed in countries other than your own. We ensure that appropriate safeguards are in place to protect your data in accordance with this privacy policy.
         </p>
 
-        <h2>Legal Framework</h2>
+        <h2>Open Source</h2>
         <p>
-          This privacy policy is part of and subject to our Terms. In case of any conflict between this privacy policy and our Terms, the Terms shall prevail.
+          Pincer is an open-source project. The source code is available on{' '}
+          <a href="https://github.com/sparrow-js/openclaw-deploy" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+          . You can review how our platform handles data by examining the codebase.
         </p>
 
         <h2>Changes to This Policy</h2>
         <p>
-          We may update this policy periodically. Changes will be handled in accordance with the process outlined in our Terms regarding policy updates.
+          We may update this privacy policy from time to time. When we make changes, we will update the &quot;Last Updated&quot; date at the top of this page. We encourage you to review this policy periodically to stay informed about how we protect your data.
         </p>
 
-        <h2>Contact Details</h2>
-        <h3>General Contact Information</h3>
-        <p>
-          Company name: needware Labs Incorporated<br />
-          Website: https://needware.dev
-        </p>
-
-        <h3>Contact Us For</h3>
+        <h2>Contact Us</h2>
+        <p>If you have questions about this privacy policy or our data practices, you can reach us through:</p>
         <ul>
-          <li>Privacy questions: needwareofficial@gmail.com</li>
-          <li>Support (Enterprise & Scale plans): needwareofficial@gmail.com</li>
-          <li>DMCA and legal issues: needwareofficial@gmail.com</li>
-          <li>General feedback: needwareofficial@gmail.com</li>
-          <li>Job applications: needwareofficial@gmail.com</li>
+          <li>
+            GitHub Issues:{' '}
+            <a href="https://github.com/sparrow-js/openclaw-deploy/issues" target="_blank" rel="noopener noreferrer">
+              github.com/sparrow-js/openclaw-deploy/issues
+            </a>
+          </li>
+          <li>
+            Twitter/X:{' '}
+            <a href="https://x.com/nicepkg" target="_blank" rel="noopener noreferrer">
+              @nicepkg
+            </a>
+          </li>
         </ul>
 
-        <h3>Response Times</h3>
-        <ul>
-          <li>We aim to respond to privacy-related inquiries within 7 business days</li>
-          <li>Support requests are handled according to your plan's service level agreement (see Terms of service for details)</li>
-          <li>For urgent matters related to data protection or security incidents, please mark your email as "URGENT - Privacy concern"</li>
-        </ul>
-
-        <h2>Additional Resources</h2>
-        <ul>
-          <li>Terms of service: https://needware.dev/terms</li>
-        </ul>
-
-        <p>
-          For the fastest response, please use the appropriate email address for your inquiry and include relevant account information when contacting us.
-        </p>
-
-        <p className="mt-8 text-sm">Last updated: March 18, 2025</p>
+        <p className="mt-8 text-sm">Last updated: March 8, 2026</p>
       </section>
     </main>
   );

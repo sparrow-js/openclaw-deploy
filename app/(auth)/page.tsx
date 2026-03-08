@@ -11,6 +11,7 @@ import type { ModelOption, ChannelOption } from "@/lib/constants/openclaw-deploy
 import { MODEL_TO_OPENROUTER_ID, CHANNEL_DISPLAY_NAMES } from "@/lib/constants/openclaw-deploy";
 import { CHANNEL_CONFIGS, MODEL_OPTIONS, CHANNEL_OPTIONS } from "@/lib/constants/openclaw-channels";
 import { AppHeader } from "@/components/AppHeader";
+import { AppFooter } from "@/components/AppFooter";
 
 // ===== 连接通道内联表单 =====
 function ConnectChannelInline({
@@ -1194,6 +1195,8 @@ export default function OpenClawInstallPage() {
         isOpen={pricingModalOpen}
         onClose={() => setPricingModalOpen(false)}
       />
+
+      <AppFooter />
     </div>
   );
 }
