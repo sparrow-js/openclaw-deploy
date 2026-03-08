@@ -37,7 +37,7 @@ export function AppHeader() {
                 <path d="M60 52 L66 60 M54 56 L58 64 M48 58 L50 66" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
-            <span className="text-gray-900 text-[16px] font-bold tracking-tight">OpenClaw</span>
+            <span className="text-gray-900 text-[16px] font-bold tracking-tight">Pincer</span>
           </Link>
 
           {/* 分隔线 */}
