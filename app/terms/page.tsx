@@ -303,12 +303,6 @@ export default function TermsPage() {
               github.com/sparrow-js/openclaw-deploy/issues
             </a>
           </li>
-          <li>
-            Twitter/X:{' '}
-            <a href="https://x.com/nicepkg" target="_blank" rel="noopener noreferrer">
-              @nicepkg
-            </a>
-          </li>
         </ul>
       </section>
     </main>

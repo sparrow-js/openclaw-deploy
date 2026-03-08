@@ -184,12 +184,6 @@ export default function PrivacyPolicy() {
               github.com/sparrow-js/openclaw-deploy/issues
             </a>
           </li>
-          <li>
-            Twitter/X:{' '}
-            <a href="https://x.com/nicepkg" target="_blank" rel="noopener noreferrer">
-              @nicepkg
-            </a>
-          </li>
         </ul>
 
         <p className="mt-8 text-sm">Last updated: March 8, 2026</p>
