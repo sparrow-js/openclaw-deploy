@@ -59,7 +59,7 @@ export async function POST(
     const safeSlug = slug.replace(/[^a-zA-Z0-9_@/.-]/g, '');
     const result = await executeCommand(flyAppName, machine.id, [
       'sh', '-c',
-      `mkdir -p /home/node/.openclaw/workspace/skills && cd /home/node/.openclaw/workspace/skills && CLAWHUB_TOKEN=${CLAWHUB_TOKEN} clawhub install ${safeSlug} 2>&1`
+      `CLAWHUB_TOKEN=${CLAWHUB_TOKEN} clawhub install ${safeSlug} 2>&1`
     ]);
 
     console.log(`[skills/install] CLI exit_code: ${result.exit_code}`);
