@@ -2,6 +2,8 @@
 
 一键将 **OpenClaw** AI 机器人部署到云端。选模型、连通道、点部署，几分钟内即可在 Telegram、Discord、飞书等渠道运行；基础设施、API 与 Webhook 由我们负责，你只管用。
 
+![OpenClaw Deploy](./public/image-83ac1c78-8b5f-43bb-8deb-ff7cb7113a0e.png)
+
 ## 目录
 
 - [功能概览](#功能概览)
